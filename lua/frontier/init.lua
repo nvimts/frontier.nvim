@@ -1,3 +1,13 @@
+-- TODO
+--
+-- line number
+-- auto save
+-- go to start line location by <CR>
+-- directory
+-- exclue files/directories
+-- regex
+--
+
 local M = {}
 
 -- Store the window ID globally to track if it's open
