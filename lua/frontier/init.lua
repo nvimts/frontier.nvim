@@ -11,11 +11,14 @@ local function get_relative_path()
 	return relative_path
 end
 
--- Function to get visual selection line numbers
+-- Function to get visual selection line numbers for the current selection
 local function get_visual_selection()
-	local start_line = vim.fn.line("'<")
-	local end_line = vim.fn.line("'>")
-	return start_line, end_line
+	-- Get the start and end positions of the visual selection
+	local start_pos = vim.fn.getpos("'<")
+	local end_pos = vim.fn.getpos("'>")
+
+	-- Return the line numbers
+	return start_pos[2], end_pos[2]
 end
 
 -- Function to get frontier file path for current working directory
@@ -144,6 +147,12 @@ end
 
 -- Function to save selection location (without opening window)
 function M.save_selection_location()
+	-- Preserve the visual selection mode
+	local mode = vim.fn.mode()
+	if mode ~= "v" and mode ~= "V" and mode ~= "" then
+		return
+	end
+
 	-- Get the relative path
 	local relative_path = get_relative_path()
 
