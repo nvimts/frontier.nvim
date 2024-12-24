@@ -1,5 +1,8 @@
 local M = {}
 
+-- Store the window ID globally to track if it's open
+M.frontier_win_id = nil
+
 -- Function to get the relative path of the current buffer
 local function get_relative_path()
 	local absolute_path = vim.fn.expand("%:p")
@@ -34,16 +37,13 @@ end
 
 -- Function to create a floating window
 local function open_floating_window(bufnr)
+	-- Get editor dimensions
 	local width = vim.api.nvim_get_option("columns")
 	local height = vim.api.nvim_get_option("lines")
 
-	print(string.format("Editor dimensions: %dx%d", width, height))
-
-	-- Calculate floating window size
+	-- Calculate floating window size (50% of editor size)
 	local win_height = math.ceil(height * 0.5)
 	local win_width = math.ceil(width * 0.5)
-
-	print(string.format("Window dimensions: %dx%d", win_width, win_height))
 
 	-- Calculate starting position (centered)
 	local row = math.ceil((height - win_height) / 2)
@@ -60,40 +60,43 @@ local function open_floating_window(bufnr)
 		style = "minimal",
 	}
 
-	if not vim.api.nvim_buf_is_valid(bufnr) then
-		print("Invalid buffer number:", bufnr)
-		return
-	end
-
 	-- Create the floating window
 	local win_id = vim.api.nvim_open_win(bufnr, true, opts)
-	if win_id == 0 then
-		print("Failed to create window")
-		return
-	end
 
 	-- Set window-local options
 	vim.wo[win_id].wrap = false
 	vim.wo[win_id].number = true
 
-	-- Add autocommand to close window with q or <Esc>
+	-- Add autocommand to clear window ID when buffer is closed
 	vim.api.nvim_create_autocmd("BufWinLeave", {
 		buffer = bufnr,
 		callback = function()
 			if vim.api.nvim_win_is_valid(win_id) then
 				vim.api.nvim_win_close(win_id, true)
+				M.frontier_win_id = nil
 			end
 		end,
 	})
 
 	-- Add keymaps for the floating window
-	vim.keymap.set("n", "q", ":q<CR>", { buffer = bufnr, silent = true })
-	vim.keymap.set("n", "<Esc>", ":q<CR>", { buffer = bufnr, silent = true })
+	vim.keymap.set("n", "q", function()
+		if vim.api.nvim_win_is_valid(win_id) then
+			vim.api.nvim_win_close(win_id, true)
+			M.frontier_win_id = nil
+		end
+	end, { buffer = bufnr, silent = true })
+
+	vim.keymap.set("n", "<Esc>", function()
+		if vim.api.nvim_win_is_valid(win_id) then
+			vim.api.nvim_win_close(win_id, true)
+			M.frontier_win_id = nil
+		end
+	end, { buffer = bufnr, silent = true })
 
 	return win_id
 end
 
--- Main function to save selection location
+-- Function to save selection location (without opening window)
 function M.save_selection_location()
 	-- Get the relative path
 	local relative_path = get_relative_path()
@@ -115,18 +118,29 @@ function M.save_selection_location()
 	table.insert(lines, location_str)
 	vim.api.nvim_buf_set_lines(frontier_bufnr, 0, -1, false, lines)
 
-	-- Show the buffer in a floating window
-	open_floating_window(frontier_bufnr)
-
 	-- Show a confirmation message
 	vim.api.nvim_echo({ { string.format("Location saved: %s", location_str), "Normal" } }, true, {})
+end
+
+-- Function to toggle the frontier window
+function M.toggle_frontier_window()
+	-- If window exists and is valid, close it
+	if M.frontier_win_id and vim.api.nvim_win_is_valid(M.frontier_win_id) then
+		vim.api.nvim_win_close(M.frontier_win_id, true)
+		M.frontier_win_id = nil
+		return
+	end
+
+	-- Otherwise, open the window
+	local frontier_bufnr = get_frontier_buffer()
+	M.frontier_win_id = open_floating_window(frontier_bufnr)
 end
 
 -- Setup function
 function M.setup(opts)
 	opts = opts or {}
 
-	-- Set up the keymap (default to <leader>z if not specified)
+	-- Set up the visual mode keymap (default to <leader>z)
 	local keymap = opts.keymap or "<leader>z"
 	vim.keymap.set(
 		"v",
@@ -134,9 +148,14 @@ function M.setup(opts)
 		M.save_selection_location,
 		{ noremap = true, silent = true, desc = "Save selection location" }
 	)
-end
 
--- local bufnr = vim.api.nvim_create_buf(false, true)
--- open_floating_window(bufnr)
+	-- Set up the normal mode keymap (default to <leader>z)
+	vim.keymap.set(
+		"n",
+		keymap,
+		M.toggle_frontier_window,
+		{ noremap = true, silent = true, desc = "Toggle frontier window" }
+	)
+end
 
 return M
