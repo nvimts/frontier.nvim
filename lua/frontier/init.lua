@@ -34,13 +34,16 @@ end
 
 -- Function to create a floating window
 local function open_floating_window(bufnr)
-	-- Get editor dimensions
 	local width = vim.api.nvim_get_option("columns")
 	local height = vim.api.nvim_get_option("lines")
 
-	-- Calculate floating window size (50% of editor size)
+	print(string.format("Editor dimensions: %dx%d", width, height))
+
+	-- Calculate floating window size
 	local win_height = math.ceil(height * 0.5)
 	local win_width = math.ceil(width * 0.5)
+
+	print(string.format("Window dimensions: %dx%d", win_width, win_height))
 
 	-- Calculate starting position (centered)
 	local row = math.ceil((height - win_height) / 2)
@@ -57,8 +60,17 @@ local function open_floating_window(bufnr)
 		style = "minimal",
 	}
 
+	if not vim.api.nvim_buf_is_valid(bufnr) then
+		print("Invalid buffer number:", bufnr)
+		return
+	end
+
 	-- Create the floating window
 	local win_id = vim.api.nvim_open_win(bufnr, true, opts)
+	if win_id == 0 then
+		print("Failed to create window")
+		return
+	end
 
 	-- Set window-local options
 	vim.wo[win_id].wrap = false
@@ -123,5 +135,8 @@ function M.setup(opts)
 		{ noremap = true, silent = true, desc = "Save selection location" }
 	)
 end
+
+-- local bufnr = vim.api.nvim_create_buf(false, true)
+-- open_floating_window(bufnr)
 
 return M
