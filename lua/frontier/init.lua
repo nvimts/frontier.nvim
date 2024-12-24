@@ -90,9 +90,9 @@ local function open_floating_window(bufnr)
 	local width = vim.opt.columns:get()
 	local height = vim.opt.lines:get()
 
-	-- Calculate floating window size (50% of editor size)
-	local win_height = math.ceil(height * 0.5)
-	local win_width = math.ceil(width * 0.5)
+	-- Calculate floating window size (30% of editor size)
+	local win_height = math.ceil(height * 0.3)
+	local win_width = math.ceil(width * 0.3)
 
 	-- Calculate starting position (centered)
 	local row = math.ceil((height - win_height) / 2)
@@ -107,6 +107,8 @@ local function open_floating_window(bufnr)
 		height = win_height,
 		border = "rounded",
 		style = "minimal",
+		title = "Frontier",
+		title_pos = "center",
 	}
 
 	-- Create the floating window
