@@ -13,33 +13,79 @@ end
 
 -- Function to get visual selection line numbers
 local function get_visual_selection()
-	local start_pos = vim.fn.getpos("'<")
-	local end_pos = vim.fn.getpos("'>")
-	return start_pos[2], end_pos[2] -- Return start and end line numbers
+	local start_line = vim.fn.line("'<")
+	local end_line = vim.fn.line("'>")
+	return start_line, end_line
+end
+
+-- Function to get frontier file path for current working directory
+local function get_frontier_file()
+	local cwd = vim.fn.getcwd()
+	local cwd_hash = vim.fn.sha256(cwd)
+	local cache_dir = vim.fn.stdpath("data") .. "/frontier"
+
+	-- Create cache directory if it doesn't exist
+	if vim.fn.isdirectory(cache_dir) == 0 then
+		vim.fn.mkdir(cache_dir, "p")
+	end
+
+	return cache_dir .. "/" .. cwd_hash
+end
+
+-- Function to load frontier content from file
+local function load_frontier_content(bufnr)
+	local filepath = get_frontier_file()
+	if vim.fn.filereadable(filepath) == 1 then
+		local lines = vim.fn.readfile(filepath)
+		vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+	end
+end
+
+-- Function to save frontier content to file
+local function save_frontier_content(bufnr)
+	local filepath = get_frontier_file()
+	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+	vim.fn.writefile(lines, filepath)
 end
 
 -- Function to create or get the frontier buffer
 local function get_frontier_buffer()
-	local frontier_bufnr = vim.fn.bufnr("frontier")
-	if frontier_bufnr == -1 then
-		-- Create a new buffer named 'frontier'
-		frontier_bufnr = vim.api.nvim_create_buf(false, false)
-		vim.api.nvim_buf_set_name(frontier_bufnr, "frontier")
+	local buffer_name = "frontier:" .. vim.fn.getcwd()
+	local frontier_bufnr = vim.fn.bufnr(buffer_name)
 
-		-- Set buffer options using vim.bo
-		vim.bo[frontier_bufnr].buftype = "nofile"
+	if frontier_bufnr == -1 then
+		-- Create a new buffer with path-specific name
+		frontier_bufnr = vim.api.nvim_create_buf(false, false)
+		vim.api.nvim_buf_set_name(frontier_bufnr, buffer_name)
+
+		-- Set buffer options
+		vim.bo[frontier_bufnr].buftype = "" -- Regular file buffer
 		vim.bo[frontier_bufnr].bufhidden = "hide"
 		vim.bo[frontier_bufnr].swapfile = false
 		vim.bo[frontier_bufnr].modifiable = true
+
+		-- Load existing content if any
+		load_frontier_content(frontier_bufnr)
+
+		-- Set up autocmd to save content when buffer is written
+		vim.api.nvim_create_autocmd("BufWriteCmd", {
+			buffer = frontier_bufnr,
+			callback = function()
+				save_frontier_content(frontier_bufnr)
+				vim.bo[frontier_bufnr].modified = false
+				vim.notify("Frontier content saved", vim.log.levels.INFO)
+			end,
+		})
 	end
+
 	return frontier_bufnr
 end
 
 -- Function to create a floating window
 local function open_floating_window(bufnr)
 	-- Get editor dimensions
-	local width = vim.api.nvim_get_option("columns")
-	local height = vim.api.nvim_get_option("lines")
+	local width = vim.opt.columns:get()
+	local height = vim.opt.lines:get()
 
 	-- Calculate floating window size (50% of editor size)
 	local win_height = math.ceil(height * 0.5)
@@ -110,13 +156,18 @@ function M.save_selection_location()
 	-- Get or create the frontier buffer
 	local frontier_bufnr = get_frontier_buffer()
 
-	-- Make sure the buffer is modifiable
-	vim.bo[frontier_bufnr].modifiable = true
-
-	-- Append the location string to the frontier buffer
+	-- Get existing lines and append the new location string
 	local lines = vim.api.nvim_buf_get_lines(frontier_bufnr, 0, -1, false)
-	table.insert(lines, location_str)
-	vim.api.nvim_buf_set_lines(frontier_bufnr, 0, -1, false, lines)
+	if #lines == 1 and lines[1] == "" then
+		-- If buffer is empty (just has one blank line), replace it
+		vim.api.nvim_buf_set_lines(frontier_bufnr, 0, -1, false, { location_str })
+	else
+		-- Otherwise append to existing content
+		vim.api.nvim_buf_set_lines(frontier_bufnr, -1, -1, false, { location_str })
+	end
+
+	-- Mark buffer as modified
+	vim.bo[frontier_bufnr].modified = true
 
 	-- Show a confirmation message
 	vim.api.nvim_echo({ { string.format("Location saved: %s", location_str), "Normal" } }, true, {})
