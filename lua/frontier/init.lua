@@ -43,8 +43,8 @@ local function get_relative_path()
 end
 
 local function get_visual_selection()
-  local start_pos = vim.fn.getpos("v")  -- start of visual selction
-  local end_pos = vim.fn.getpos(".")  -- current cursor position
+  local start_pos = vim.fn.getpos("v") -- start of visual selction
+  local end_pos = vim.fn.getpos(".") -- current cursor position
 
   if start_pos[2] > end_pos[2] or (start_pos[2] == end_pos[2] and start_pos[3] > end_pos[3]) then
     start_pos, end_pos = end_pos, start_pos
@@ -116,6 +116,41 @@ local function get_frontier_buffer()
   return frontier_bufnr
 end
 
+-- Function to go to selected location
+function M.go_to_selected()
+  -- Get the current line
+  local line = vim.api.nvim_get_current_line()
+
+  -- Parse the line
+  local path, line_range = string.match(line, "([^:]+):?(.*)$")
+  if not path then
+    return
+  end
+
+  -- Get start line number if it exists
+  local start_line = 1
+  if line_range ~= "" then
+    ---@diagnostic disable-next-line: cast-local-type
+    start_line = tonumber(string.match(line_range, "(%d+)"))
+  end
+
+  -- Close the floating window
+  if M.frontier_win_id and vim.api.nvim_win_is_valid(M.frontier_win_id) then
+    vim.api.nvim_win_close(M.frontier_win_id, true)
+    M.frontier_win_id = nil
+  end
+
+  -- Open the file
+  vim.cmd("edit " .. path)
+
+  -- Go to the line if we have one
+  if start_line then
+    vim.api.nvim_win_set_cursor(0, { start_line, 0 })
+    -- Center the view
+    vim.cmd("normal! zz")
+  end
+end
+
 -- Function to create a floating window
 local function open_floating_window(bufnr)
   -- Get editor dimensions
@@ -176,6 +211,9 @@ local function open_floating_window(bufnr)
     end
   end, { buffer = bufnr, silent = true })
 
+  -- Add Enter keymap to go to selected location
+  vim.keymap.set("n", "<CR>", M.go_to_selected, { buffer = bufnr, silent = true })
+
   return win_id
 end
 
@@ -213,7 +251,7 @@ function M.save_selection_location()
   vim.bo[frontier_bufnr].modified = true
 
   -- Exit visual mode
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'n', false)
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
 
   -- Show a confirmation message
   vim.api.nvim_echo({ { string.format("Location saved: %s", location_str), "Normal" } }, true, {})
