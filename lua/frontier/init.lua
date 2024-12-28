@@ -1,6 +1,5 @@
 -- TODO
 --
--- go to start line location by <CR>
 -- directory
 -- exclue files/directories
 -- regex
@@ -11,7 +10,6 @@ local M = {}
 -- Setup function
 function M.setup(opts)
   opts = opts or {}
-  print("loaded frontier_local")
 
   -- Set up the visual mode keymap (default to <leader>z)
   local keymap = opts.keymap or "<leader>z"
@@ -108,7 +106,7 @@ local function get_frontier_buffer()
       callback = function()
         save_frontier_content(frontier_bufnr)
         vim.bo[frontier_bufnr].modified = false
-        vim.notify("Frontier content saved", vim.log.levels.INFO)
+        -- vim.notify("Frontier content saved", vim.log.levels.INFO)
       end,
     })
   end
