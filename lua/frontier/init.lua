@@ -1,10 +1,3 @@
--- TODO
---
--- directory
--- exclue files/directories
--- regex
---
-
 local M = {}
 
 -- Setup function
@@ -83,7 +76,7 @@ end
 
 -- Function to create or get the frontier buffer
 local function get_frontier_buffer()
-  local buffer_name = "frontier:" .. vim.fn.getcwd()
+  local buffer_name = ".frontier:" .. vim.fn.getcwd()
   local frontier_bufnr = vim.fn.bufnr(buffer_name)
 
   if frontier_bufnr == -1 then
@@ -93,7 +86,7 @@ local function get_frontier_buffer()
 
     -- Set buffer options
     vim.bo[frontier_bufnr].buftype = "" -- Regular file buffer
-    vim.bo[frontier_bufnr].bufhidden = "hide"
+    vim.bo[frontier_bufnr].bufhidden = ""
     vim.bo[frontier_bufnr].swapfile = false
     vim.bo[frontier_bufnr].modifiable = true
 
