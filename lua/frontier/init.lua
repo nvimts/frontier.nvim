@@ -1,28 +1,25 @@
 local M = {}
 local config = require("frontier.config")
 
--- Configuration function
-function M.config()
-  return function(user_opts)
-    local opts = config.setup(user_opts) or {}
+function M.setup(user_opts)
+  local opts = config.setup(user_opts) or {}
 
-    -- Set up the visual mode keymap (default to <leader>z)
-    local keymap = opts.keymap or "<leader>z"
-    vim.keymap.set(
-      "v",
-      keymap,
-      M.save_selection_location,
-      { noremap = true, silent = true, desc = "Save selection location" }
-    )
+  -- Set up the visual mode keymap (default to <leader>z)
+  local keymap = opts.keymap or "<leader>z"
+  vim.keymap.set(
+    "v",
+    keymap,
+    M.save_selection_location,
+    { noremap = true, silent = true, desc = "Save selection location" }
+  )
 
-    -- Set up the normal mode keymap (default to <leader>z)
-    vim.keymap.set(
-      "n",
-      keymap,
-      M.toggle_frontier_window,
-      { noremap = true, silent = true, desc = "Toggle frontier window" }
-    )
-  end
+  -- Set up the normal mode keymap (default to <leader>z)
+  vim.keymap.set(
+    "n",
+    keymap,
+    M.toggle_frontier_window,
+    { noremap = true, silent = true, desc = "Toggle frontier window" }
+  )
 end
 
 -- Store the window ID globally to track if it's open
