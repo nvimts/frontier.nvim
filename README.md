@@ -6,6 +6,8 @@ It uses a floating window to manage code context for LLM. The user interface/exp
 
 Use keymaps to add files and any selected code as context. Their locations is saved into the floating window. Frontier buffer is persistent and project path specific.
 
+More than 95 percent of code are written by LLM! (proudly) It only took me a weekend.
+
 ## Features
 
 - Floating window interface for multiple selected files and code blocks
