@@ -93,18 +93,24 @@ local function get_frontier_buffer()
     vim.api.nvim_buf_set_name(frontier_bufnr, buffer_name)
 
     -- Set buffer options
-    vim.bo[frontier_bufnr].buftype = "" -- Regular file buffer
-    vim.bo[frontier_bufnr].bufhidden = ""
+    vim.bo[frontier_bufnr].buftype = "nofile" -- Scratch buffer
+    vim.bo[frontier_bufnr].bufhidden = "hide"
+    vim.bo[frontier_bufnr].buflisted = false
     vim.bo[frontier_bufnr].swapfile = false
     vim.bo[frontier_bufnr].modifiable = true
 
     -- Load existing content if any
     load_frontier_content(frontier_bufnr)
 
-    -- save buffer to file
-    local lines = vim.api.nvim_buf_get_lines(frontier_bufnr, 0, -1, false)
-    vim.fn.writefile(lines, buffer_name)
-    vim.bo[frontier_bufnr].modified = false
+    -- Set up autocmd to save content when buffer is written
+    vim.api.nvim_create_autocmd("BufWriteCmd", {
+      buffer = frontier_bufnr,
+      callback = function()
+        save_frontier_content(frontier_bufnr)
+        vim.bo[frontier_bufnr].modified = false
+        -- vim.notify("Frontier content saved", vim.log.levels.INFO)
+      end,
+    })
   end
 
   return frontier_bufnr
