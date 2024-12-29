@@ -1,6 +1,6 @@
-# Frontier - Neovim Plugin
+# Frontier.nvim
 
-Frontier is a better context manager for avaten.nvim.
+Frontier.nvim is a better context manager for avaten.nvim.
 
 It uses a floating window to manage code context for LLM. The user interface/experience is similar to Harpoon.
 
@@ -70,15 +70,15 @@ Use keymaps to add files, selected code and toggle the floating window.
 The floating window is normal buffer you can add, edit and delete like normal Neovim buffer.
 The changes are automatically saved.
 
-keymap main is default to "<leader>z"
-keymap add_current_file is default to "<leader>\\" (i.e. pressing <leader> then backslask)
+keymap main is default to "\<leader\>z"
+keymap add_current_file is default to "\<leader\>\\" (i.e. pressing \<leader\> then backslash)
 
 In normal mode:
-- "<leader>z":           Toggle the floating window
-- "<leader>\\":          Add current file to floating window
+- "\<leader\>z":           Toggle the floating window
+- "\<leader\>\\":          Add current file to floating window
 
 In visual mode:
-- "<leader>z":           Add selected code location to floating window
+- "\<leader\>z":           Add selected code location to floating window
 
 Inside the floating window, press Enter to go to the first line of selected code.
 
