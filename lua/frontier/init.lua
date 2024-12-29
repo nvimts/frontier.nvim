@@ -285,6 +285,8 @@ end
 function M.toggle_frontier_window()
   -- If window exists and is valid, close it
   if M.frontier_win_id and vim.api.nvim_win_is_valid(M.frontier_win_id) then
+    local frontier_bufnr = vim.api.nvim_win_get_buf(M.frontier_win_id)
+    save_frontier_content(frontier_bufnr)
     vim.api.nvim_win_close(M.frontier_win_id, true)
     M.frontier_win_id = nil
     return
