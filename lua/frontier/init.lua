@@ -102,7 +102,8 @@ local function get_frontier_buffer()
     load_frontier_content(frontier_bufnr)
 
     -- save buffer to file
-    vim.fn.writefile(frontier_bufnr, buffer_name)
+    local lines = vim.api.nvim_buf_get_lines(frontier_bufnr, 0, -1, false)
+    vim.fn.writefile(lines, buffer_name)
     vim.bo[frontier_bufnr].modified = false
   end
 
