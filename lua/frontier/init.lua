@@ -5,7 +5,7 @@ function M.setup(user_opts)
   local opts = config.setup(user_opts) or {}
 
   local key_main = opts.keys.main or "<leader>z"
-  local key_add_current_file = opts.keys.add_current_file or "<leader>am"
+  local key_add_current_file = opts.keys.add_current_file or "<leader>\\"
   vim.keymap.set(
     "v",
     key_main,

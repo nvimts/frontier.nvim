@@ -1,7 +1,7 @@
 local M = {}
 
 local defaults = {
-  keys = {  main = "<leader>z", add_current_file = "<leader>am",
+  keys = {  main = "<leader>z", add_current_file = "<leader>\\",
   }
 }
 
