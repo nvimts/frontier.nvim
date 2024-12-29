@@ -66,7 +66,7 @@ local function get_frontier_file()
   return cache_dir .. "/" .. cwd_hash
 end
 
--- Function to load frontier content from file
+-- Function to load frontier content from file into a buffer
 local function load_frontier_content(bufnr)
   local filepath = get_frontier_file()
   if vim.fn.filereadable(filepath) == 1 then
@@ -101,15 +101,9 @@ local function get_frontier_buffer()
     -- Load existing content if any
     load_frontier_content(frontier_bufnr)
 
-    -- Set up autocmd to save content when buffer is written
-    vim.api.nvim_create_autocmd("BufWriteCmd", {
-      buffer = frontier_bufnr,
-      callback = function()
-        save_frontier_content(frontier_bufnr)
-        vim.bo[frontier_bufnr].modified = false
-        -- vim.notify("Frontier content saved", vim.log.levels.INFO)
-      end,
-    })
+    -- save buffer to file
+    vim.fn.writefile(frontier_bufnr, buffer_name)
+    vim.bo[frontier_bufnr].modified = false
   end
 
   return frontier_bufnr
