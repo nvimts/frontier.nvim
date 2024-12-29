@@ -1,10 +1,10 @@
-local config = require("frontier.config")
 local M = {}
+local config = require("frontier.config")
 
 -- Configuration function
 function M.config()
   return function(user_opts)
-    local opts = config.config()(user_opts) or {}
+    local opts = config.setup(user_opts) or {}
 
     -- Set up the visual mode keymap (default to <leader>z)
     local keymap = opts.keymap or "<leader>z"
