@@ -4,11 +4,11 @@ local config = require("frontier.config")
 function M.setup(user_opts)
   local opts = config.setup(user_opts) or {}
 
-  -- Set up the visual mode keymap (default to <leader>z)
-  local keymap = opts.keymap or "<leader>z"
+  local key_main = opts.keys.main or "<leader>z"
+  local key_add_current_file = opts.keys.add_current_file or "<leader>Z"
   vim.keymap.set(
     "v",
-    keymap,
+    key_main,
     M.save_selection_location,
     { noremap = true, silent = true, desc = "Save selection location" }
   )
@@ -16,9 +16,17 @@ function M.setup(user_opts)
   -- Set up the normal mode keymap (default to <leader>z)
   vim.keymap.set(
     "n",
-    keymap,
+    key_main,
     M.toggle_frontier_window,
     { noremap = true, silent = true, desc = "Toggle frontier window" }
+  )
+
+  -- Set up keymap to add current file to frontier
+  vim.keymap.set(
+    "n",
+    key_add_current_file,
+    M.add_current_file,
+    { noremap = true, silent = true, desc = "Add Current File to Frontier" }
   )
 end
 
@@ -246,6 +254,31 @@ function M.save_selection_location()
 
   -- Show a confirmation message
   vim.api.nvim_echo({ { string.format("Location saved: %s", location_str), "Normal" } }, true, {})
+end
+
+-- Function to add current file to frontier
+function M.add_current_file()
+  -- Get the relative path
+  local relative_path = get_relative_path()
+
+  -- Get or create the frontier buffer
+  local frontier_bufnr = get_frontier_buffer()
+
+  -- Get existing lines and append the new location string
+  local lines = vim.api.nvim_buf_get_lines(frontier_bufnr, 0, -1, false)
+  if #lines == 1 and lines[1] == "" then
+    -- If buffer is empty (just has one blank line), replace it
+    vim.api.nvim_buf_set_lines(frontier_bufnr, 0, -1, false, { relative_path })
+  else
+    -- Otherwise append to existing content
+    vim.api.nvim_buf_set_lines(frontier_bufnr, -1, -1, false, { relative_path })
+  end
+
+  -- Mark buffer as modified
+  vim.bo[frontier_bufnr].modified = true
+
+  -- Show a confirmation message
+  vim.api.nvim_echo({ { string.format("File added to Frontier: %s", relative_path), "Normal" } }, true, {})
 end
 
 -- Function to toggle the frontier window

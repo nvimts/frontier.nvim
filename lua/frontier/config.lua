@@ -1,7 +1,8 @@
 local M = {}
 
 local defaults = {
-  keymap = "<leader>z",
+  keys = {  main = "<leader>z", add_current_file = "<leader>Z",
+  }
 }
 
 function M.setup(opts)
