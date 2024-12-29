@@ -93,6 +93,7 @@ local function get_frontier_buffer()
     vim.api.nvim_buf_set_name(frontier_bufnr, buffer_name)
 
     -- Set buffer options
+    -- Scratch buffer can still be accessed by other buffer!
     vim.bo[frontier_bufnr].buftype = "nofile" -- Scratch buffer
     vim.bo[frontier_bufnr].bufhidden = "hide"
     vim.bo[frontier_bufnr].buflisted = false
